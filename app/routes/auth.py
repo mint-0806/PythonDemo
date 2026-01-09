@@ -1,0 +1,34 @@
+# app/routes/auth.py
+from flask import render_template, redirect, url_for, request, flash
+from flask_login import login_user, logout_user, login_required
+from app import db
+from app.models import User
+from app.routes import bp
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired
+
+# ✅ 新增：添加表单类
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Login')
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()  # ✅ 初始化表单
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            return redirect(url_for('books.books'))
+        else:
+            flash('Invalid email or password')
+    return render_template('login.html', form=form)  # ✅ 传递 form 变量
+
+@bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('auth.login'))
