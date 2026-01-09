@@ -9,23 +9,32 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_pyfile('config.py')
 
-    # 初始化扩展
+    # ✅ 修复：正确加载配置
+    from app.config import Config
+    app.config.from_object(Config)
+
     db.init_app(app)
     login_manager.init_app(app)
 
-    # 注册蓝图（重要！）
+    # 添加 user_loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models import User
+        return User.query.get(int(user_id))
+
+    # 注册蓝图
     from app.routes import bp as routes_bp
     app.register_blueprint(routes_bp)
 
+    # 创建测试用户
+    with app.app_context():
+        db.create_all()
+        from app.models import User
+        if not User.query.filter_by(email='test@example.com').first():
+            user = User(email='test@example.com')
+            user.set_password('test123')
+            db.session.add(user)
+            db.session.commit()
+
     return app
-
-# app/__init__.py
-# ... 保持原有代码不变 ...
-
-# ✅ 新增：添加 user_loader 回调
-@login_manager.user_loader
-def load_user(user_id):
-    from app.models import User
-    return User.query.get(int(user_id))
