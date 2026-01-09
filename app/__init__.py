@@ -20,3 +20,12 @@ def create_app():
     app.register_blueprint(routes_bp)
 
     return app
+
+# app/__init__.py
+# ... 保持原有代码不变 ...
+
+# ✅ 新增：添加 user_loader 回调
+@login_manager.user_loader
+def load_user(user_id):
+    from app.models import User
+    return User.query.get(int(user_id))
