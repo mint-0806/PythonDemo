@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>我的书籍</h2>
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" class="form-control mb-2">
+    <button type="submit" class="btn btn-primary">上传书籍</button>
+</form>
+
+{% if books %}
+<div class="row">
+    {% for book in books %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ book.title }}</h5>
+                <a href="/uploads/{{ book.filename }}" class="btn btn-primary">阅读</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>还没有上传书籍</p>
+{% endif %}
+{% endblock %}
